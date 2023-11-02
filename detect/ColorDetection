@@ -1,0 +1,76 @@
+#include <iostream>
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include <stdio.h>
+
+using namespace cv;
+using namespace std;
+
+const int FRAME_WIDTH = 320;
+const int FRAME_HEIGHT = 280;
+
+//inisialisasi nilai maks parameter threshold
+const int cannyThresholdInitialValue = 200;
+const int accumulatorThresholdInitialValue = 50;
+const int maxAccumulatorThreshold = 200;
+const int maxCannyThreshold = 255;
+	
+int iLowH = 0;
+int iHighH = 179;
+int iLowS = 0; 
+int iHighS = 255;
+int iLowV = 0;
+int iHighV = 255;
+
+int main( int argc, char** argv )
+{
+    Mat imgOriginal;
+	Mat imgHSV;
+	Mat imgThresholded;
+	
+    cap.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);    
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT); 
+	
+    int cannyThreshold = cannyThresholdInitialValue;
+	int accumulatorThreshold = accumulatorThresholdInitialValue;
+	
+	VideoCapture cap(0); 
+    if ( !cap.isOpened() ) 
+    {
+         cout << "Kamera tidak terdeteksi...!!" << endl;
+         return -1;
+    }
+    namedWindow("Image Thresholded", CV_WINDOW_AUTOSIZE);
+	createTrackbar("H", "Image Thresholded", &iHighH, 255);
+	createTrackbar("S", "Image Thresholded", &iHighS, 255);
+	createTrackbar("V", "Image Thresholded", &iHighV, 255);
+	createTrackbar("AccumulatorThreshold", "Image Thresholded", &accumulatorThreshold, maxAccumulatorThreshold);
+
+    while (true)
+    {
+        bool bSuccess = cap.read(imgOriginal);
+        if (!bSuccess)
+        {
+             cout << "Cannot read a frame from video stream" << endl;
+             break;
+        }
+
+		cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV);
+		inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded);
+		
+	
+		//menampilkan hasil
+		imshow("Image Thresholded", imgThresholded);
+		imshow("Original", imgOriginal); 
+		imshow("Image HSV", imgHSV);
+		
+		//tekan esc untuk keluar
+        if (waitKey(30) == 27) 
+		{
+			cout << "esc key is pressed by user" << endl;
+			break; 
+		}
+    }
+	return 0;
+}
